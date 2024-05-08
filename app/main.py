@@ -1,4 +1,4 @@
-from fastapi import FastAPI,Depends
+from fastapi import FastAPI,Depends,status
 from sqlalchemy.orm import Session
 from . import models
 from . database import engine,get_db
@@ -31,7 +31,7 @@ app.include_router(vote.router)
 
 
       
-@app.get("/")
+@app.get("/",status_code=status.HTTP_200_OK)
 async def root():
     return {"message": "Hello World"}
 

@@ -23,27 +23,29 @@ router =APIRouter(prefix="/posts",
             
 
 # @router.get("/")
-@router.get("/",response_model=List[schemas.PostOut])
+@router.get("/",response_model=List[schemas.PostOut1])
 async def get_posts(db: Session = Depends(get_db),current_user:int = Depends(oauth2.get_current_user),
                     limit :int =10,skip: int=0,search : Optional[str] = ''):
-    # cursor.execute("""SELECT * FROM posts""")
-    # posts = cursor.fetchall()
-    # print(limit)
-    # posts = db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
-    # results = db.query(models.Post,func.count(models.Vote.post_id).label("votes")).join(models.Vote,models.Post.id == models.Vote.post_id,isouter=True).group_by(models.Post.id).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
-    results = db.query(models.Post,models.User.email,func.count(models.Vote.post_id).label("votes")).join(models.User,models.Post.owner_id == models.User.id,isouter=True).join(models.Vote,models.Post.id == models.Vote.post_id,isouter=True).group_by(models.Post.id,models.User.email).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
-    print(results)
+    # results = db.query(models.Post,models.User.email,func.count(models.Vote.post_id).label("votes")).join(models.User,models.Post.owner_id == models.User.id,isouter=True).join(models.Vote,models.Post.id == models.Vote.post_id,isouter=True).group_by(models.Post.id,models.User.email).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
+    # print(results)
     
     
-    response1 = [i[0].__dict__ for i in results]
-    response2 =[i[1] for i in results]
-    response3 =[i[2] for i in results]
-    df = pd.DataFrame(response1)
-    df.drop(['_sa_instance_state'],inplace=True,axis=1)
-    df["user_id"] = response2
-    df["votes"] = response3
-    return df.to_dict(orient='records')
-    # return results
+    # response1 = [i[0].__dict__ for i in results]
+    # response2 =[i[1] for i in results]
+    # response3 =[i[2] for i in results]
+    # df = pd.DataFrame(response1)
+    # print(df)
+    # if(df.size != 0):
+    #     df.drop(['_sa_instance_state'],inplace=True,axis=1)
+    #     df["user_id"] = response2
+    #     df["votes"] = response3
+    #     return df.to_dict(orient='records')
+    # else :
+    #     return {[]}
+    ##############################
+    posts = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(
+        models.Vote, models.Vote.post_id == models.Post.id, isouter=True).group_by(models.Post.id).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
+    return posts
 
 @router.post("/",status_code=status.HTTP_201_CREATED,response_model=schemas.Post)
 def create_post(post_create : schemas.PostCreate,db: Session = Depends(get_db),current_user:int = Depends(oauth2.get_current_user)):
@@ -63,26 +65,35 @@ def create_post(post_create : schemas.PostCreate,db: Session = Depends(get_db),c
 #     return {"data":my_post[-1]}
 
 
-@router.get("/{id}",response_model=List[schemas.PostOut])
+@router.get("/{id}",response_model=schemas.PostOut1)
 def get_post(id : int,db: Session = Depends(get_db),current_user:int = Depends(oauth2.get_current_user)):
-    # post = find_post(id)
-    # cursor.execute("""SELECT * FROM posts where id = %s """,(str(id)))
-    # post = cursor.fetchone()
-    # post = db.query(models.Post).filter(models.Post.id == id).first()
-    results = db.query(models.Post,models.User.email,func.count(models.Vote.post_id).label("votes")).join(models.User,models.Post.owner_id == models.User.id,isouter=True).join(models.Vote,models.Post.id == models.Vote.post_id,isouter=True).group_by(models.Post.id,models.User.email).filter(models.Post.id == id).first()
-    if results == None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail= f"post with {id} not found")
-    response1 =[ results[0].__dict__]
-    response2 =[results[1]] 
-    response3 =[results[2] ]
-    df = pd.DataFrame(response1,)
-    df.drop(['_sa_instance_state'],inplace=True,axis=1)
-    df["user_id"] = response2
-    df["votes"] = response3
+    # # post = find_post(id)
+    # # cursor.execute("""SELECT * FROM posts where id = %s """,(str(id)))
+    # # post = cursor.fetchone()
+    # # post = db.query(models.Post).filter(models.Post.id == id).first()
+    # results = db.query(models.Post,models.User.email,func.count(models.Vote.post_id).label("votes")).join(models.User,models.Post.owner_id == models.User.id,isouter=True).join(models.Vote,models.Post.id == models.Vote.post_id,isouter=True).group_by(models.Post.id,models.User.email).filter(models.Post.id == id).first()
+    # if results == None:
+    #     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail= f"post with {id} not found")
+    # response1 =[ results[0].__dict__]
+    # response2 =[results[1]] 
+    # response3 =[results[2] ]
+    # df = pd.DataFrame(response1,)
+    # df.drop(['_sa_instance_state'],inplace=True,axis=1)
+    # df["user_id"] = response2
+    # df["votes"] = response3
     
-    print(df)
+    # print(df)
    
-    return df.to_dict(orient='records')
+    # return df.to_dict(orient='records')
+    posts = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(
+        models.Vote, models.Vote.post_id == models.Post.id, isouter=True).group_by(models.Post.id).filter(models.Post.id == id).first()
+    if posts == None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail= f"post with {id} not found")
+    
+    return posts
+
+
+
 
 
 @router.delete("/{id}",status_code=status.HTTP_204_NO_CONTENT)
