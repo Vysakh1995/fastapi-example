@@ -75,12 +75,12 @@ jobs:
       #   run: echo ${{ steps.docker_build.outputs.digest }}
  
 
-  deploy:
-    runs-on: ubuntu-latest
-    needs: [build]
-    steps:
-        - name:  deploying stuffs 
-          run: echo ""going to deploy"
+  # deploy:
+  #   runs-on: ubuntu-latest
+  #   needs: [build]
+  #   steps:
+  #       - name:  deploying stuffs 
+  #         run: echo ""going to deploy"
 
 #     steps:
 #       - name: pulling git repo
